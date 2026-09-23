@@ -1,5 +1,5 @@
 ---
-title: "about"
+title: "A Project About Coffee"
 author: "Jonathan Le Roux, Tanu, Chidera"
 date: "2026-09-22"
 output: html_document
