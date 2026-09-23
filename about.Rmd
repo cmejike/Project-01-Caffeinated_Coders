@@ -9,7 +9,7 @@ This project was developed by Caffeinated_coders For INFO 526 - Data Analysis an
 
 Team member 1: Jonathan Le Roux, MSDS Year 1 @ University of Arizona
 
-Team member 2: One sentence description of Team member 2 (e.g., year, major, etc.).
+Team member 2: Chidera M Ejike, PhD Epidemiology Year 2
 
 Team member 3: One sentence description of Team member 3 (e.g., year, major, etc.).
 
