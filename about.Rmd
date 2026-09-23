@@ -1,13 +1,13 @@
 ---
 title: "about"
-author: "Anna Leach"
+author: "Jonathan Le Roux, Tanu, Chidera"
 date: "2026-09-22"
 output: html_document
 ---
 
 This project was developed by Caffeinated_coders For INFO 526 - Data Analysis and Visualization at the University of Arizona, taught by Dr. Anna R. Leach. The team is comprised of the following team members.
 
-Team member 1: One sentence description of Team member 1 (e.g., year, majo.).
+Team member 1: Jonathan Le Roux, MSDS Year 1 @ University of Arizona
 
 Team member 2: One sentence description of Team member 2 (e.g., year, major, etc.).
 
