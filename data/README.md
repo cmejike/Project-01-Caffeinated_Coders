@@ -1,6 +1,6 @@
 # Great American Coffee Taste Test Dataset
 
-## Dataset
+## Dataset: https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-05-14
 
 Our dataset is based on the Great American Coffee Taste Test, conducted in October 2023 by James Hoffmann in collaboration with Cometeer. The data were published through the TidyTuesday project on May 14, 2024.
 
