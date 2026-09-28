@@ -57,36 +57,46 @@ To answer our research questions, we selected variables that capture coffee cons
 
 As aforementioned, the sample is self-selected and consists primarily of engaged coffee consumers, so findings should not be generalized to the broader U.S. coffee-drinking population. Approximately 13% of respondents are missing both spending variables, which may reflect survey drop-off and could result in slight overrepresentation of more engaged coffee consumers among those included in the analysis. Spending and willingness to pay are recorded as ranges stored as text, thus, we will convert them to ordered factors and treat them as categories. Some demographic groups are also small and may need to be combined for analysis. Many heavy drinkers in this sample also rate themselves as coffee experts, so the groups we compare in Question 1 overlap. Our plots will show each characteristic separately, so a pattern in one group may partly reflect another.
 
-## Questions
+## **Questions**
 
-The two questions you want to answer.
+### **Question 1**
 
-## Analysis plan
+We want to investigate whether coffee consumption, preferred coffee strength, and coffee expertise are associated with how much respondents spend on coffee each month and how much they are willing to pay for a single cup. This will help us understand which coffee-related characteristics are associated with higher spending and willingness to pay.
 
-- A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+### **Question 2**
 
+We want to investigate whether willingness to pay for a single cup of coffee varies across age, gender, and employment status. This will allow us to examine whether demographic characteristics are associated with differences in the maximum amount respondents are willing to pay.
 
+## **Analysis Plan**
 
+### **Question 1: Who spends more on coffee each month, and who will pay more for a single cup: heavy drinkers, strong-coffee drinkers, or coffee enthusiasts?**
 
+Coffee consumption can vary substantially between individuals, from the amount of coffee they drink to how strongly they prefer it and how knowledgeable they consider themselves about coffee. These characteristics may be related to how much people spend on coffee each month and how much they are willing to pay for an individual cup. Therefore, we will examine whether heavier coffee consumption, stronger coffee preferences, and greater coffee expertise are associated with higher spending and willingness to pay.
 
+We will analyze the relationships between cups, strength, and expertise and the two spending-related variables, total_spend and most_willing. Because total_spend and most_willing are reported as ordered dollar ranges we will have to clean the data. We are going to use the maximum of this range because people consistently underestimate the amount of money that they spend on coffee. Coffee purchases are underestimated due to mental accounting, where small, habitual daily expenses are mentally classified as negligible rather than part of a strict budget. Our first plot will compare monthly coffee spending across categories of coffee consumption such as caffeine amount, roast, and coffee expertise. Our second plot will examine willingness to pay for a single cup across these same characteristics
 
+### **Question 2: Is willingness to pay for a cup of coffee associated with age, gender, and employment status?** 
 
+Coffee spending and willingness to pay may also differ across demographic groups. Understanding how willingness to pay varies across age, gender, and employment status can provide additional context for the types of respondents represented in the survey and reveal whether willingness to pay differs among demographic groups.
 
+We will examine the relationship between most_willing and each of the three demographic variables: age, gender, and employment status. We will use the maximum amount respondents reported being willing to pay for a single cup, represented by the most_willing range, to compare willingness to pay across demographic groups. Because the responses are recorded as dollar ranges, we will treat most_willing as an ordered categorical variable rather than assigning respondents an exact dollar amount. Our two plots will show how the distribution of maximum willingness to pay varies across the selected demographic groups.
 
-## Discussion  
+## Discussion
 
-We expect self-rated coffee expertise to be a stronger predictor of both monthly spending and willingness to pay per cup than raw consumption (cups per day) or preferred strength, since respondents who rate themselves as more knowledgeable about coffee are more likely to seek out premium or specialty options regardless of how much coffee they drink. For Question 2, we anticipate that willingness to pay will vary most clearly across employment status, given likely differences in disposable income, and moderately across age, particularly if younger respondents favor specialty or trend-driven purchases while older respondents show more consistent spending habits. We do not expect a strong gender effect but will explore it given its inclusion in the dataset. The primary anticipated challenge is the overlap between heavy drinkers, strong-coffee drinkers, and self-rated experts, which may make it difficult to isolate which factor most directly drives spending; we will address this by visualizing each characteristic separately rather than combining them into a single model. We also anticipate some loss of precision due to missing spending data (~13%) and the binned nature of the spending and willingness-to-pay variables. A likely success of this analysis will be a clear, practical takeaway for coffee shop owners and roasters regarding which customer segments are most worth targeting with premium offerings or subscription models. 
-
+We expect self-rated coffee expertise to be a stronger predictor of both monthly spending and willingness to pay per cup than raw consumption (cups per day) or preferred strength, since respondents who rate themselves as more knowledgeable about coffee are more likely to seek out premium or specialty options regardless of how much coffee they drink. For Question 2, we anticipate that willingness to pay will vary most clearly across employment status, given likely differences in disposable income, and moderately across age, particularly if younger respondents favor specialty or trend-driven purchases while older respondents show more consistent spending habits. We do not expect a strong gender effect but will explore it given its inclusion in the dataset. The primary anticipated challenge is the overlap between heavy drinkers, strong-coffee drinkers, and self-rated experts, which may make it difficult to isolate which factor most directly drives spending; we will address this by visualizing each characteristic separately rather than combining them into a single model. We also anticipate some loss of precision due to missing spending data (\~13%) and the binned nature of the spending and willingness-to-pay variables. A likely success of this analysis will be a clear, practical takeaway for coffee shop owners and roasters regarding which customer segments are most worth targeting with premium offerings or subscription models.
 
 ## Timeline
 
-Sept 17 - Sept 21: Explore dataset and codebook individually; each member drafts two candidate research questions; complete initial descriptive/exploratory analysis.
-Sept 22 - Sept 25: Finalize the two team research questions; draft assigned proposal sections (Introduction, Dataset, Analysis Plan, Discussion, Timeline) collaboratively; target a solid initial draft by Friday, Sept 25.
-Sept 26 - Sept 28: Review the full draft as a team, revise, incorporate feedback, transfer finalized sections from the Google Doc into proposal.qmd in RStudio, and commit/push to GitHub.
-Sept 29 - Oct 5: Begin data cleaning and exploratory analysis for Question 1 and Question 2; draft initial visualizations.
-Oct 6 - Oct 10: Finalize plots (two per question), write up Results and interpretation for each question.
-Oct 11 – Oct 13: Full team review of the complete project - analysis, writing, and plots; proofread and polish.
-Oct 14: Submit final Project 1 by 11:59 pm.
+- **Sept 17 - Sept 21:** Explore dataset and codebook individually; each member drafts two candidate research questions; complete initial descriptive/exploratory analysis.
 
+- **Sept 22 - Sept 25:** Finalize the two team research questions; draft assigned proposal sections (Introduction, Dataset, Analysis Plan, Discussion, Timeline) collaboratively; target a solid initial draft by Friday, Sept 25.
 
+- **Sept 26 - Sept 28:** Review the full draft as a team, revise, incorporate feedback, transfer finalized sections from the Google Doc into proposal.qmd in RStudio, and commit/push to GitHub.
 
+- **Sept 29 - Oct 5:** Begin data cleaning and exploratory analysis for Question 1 and Question 2; draft initial visualizations.
+
+- **Oct 6 - Oct 10:** Finalize plots (two per question), write up Results and interpretation for each question.
+
+- **Oct 11 – Oct 13:** Full team review of the complete project - analysis, writing, and plots; proofread and polish.
+
+- **Oct 14:** Submit final Project 1 by 11:59 pm..
