@@ -42,9 +42,8 @@ We first explored the dataset to provide context about the population represente
 
 To answer our research questions, we selected variables that capture coffee consumption, coffee preferences and expertise, spending, willingness to pay, and demographic characteristics.
 
-
 | Variable | Description | Type | Question | Missing (%) |
-|----------|-------------|------|----------|-------------|
+|---------------|---------------|---------------|---------------|---------------|
 | cups | Cups of coffee consumed per day | Ordered categories | Q1 | 2.3 |
 | strength | Preferred coffee strength | Ordered categories | Q1 | 3.1 |
 | expertise | Self-rated coffee expertise | Numeric (1-10) | Q1 | 2.6 |
@@ -56,7 +55,6 @@ To answer our research questions, we selected variables that capture coffee cons
 
 **Data considerations and limitations**
 
-
 As aforementioned, the sample is self-selected and consists primarily of engaged coffee consumers, so findings should not be generalized to the broader U.S. coffee-drinking population. Approximately 13% of respondents are missing both spending variables, which may reflect survey drop-off and could result in slight overrepresentation of more engaged coffee consumers among those included in the analysis. Spending and willingness to pay are recorded as ranges stored as text, thus, we will convert them to ordered factors and treat them as categories. Some demographic groups are also small and may need to be combined for analysis. Many heavy drinkers in this sample also rate themselves as coffee experts, so the groups we compare in Question 1 overlap. Our plots will show each characteristic separately, so a pattern in one group may partly reflect another.
 
 ## Questions
@@ -66,3 +64,29 @@ The two questions you want to answer.
 ## Analysis plan
 
 - A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+
+
+
+
+
+
+
+
+
+## Discussion  
+
+We expect self-rated coffee expertise to be a stronger predictor of both monthly spending and willingness to pay per cup than raw consumption (cups per day) or preferred strength, since respondents who rate themselves as more knowledgeable about coffee are more likely to seek out premium or specialty options regardless of how much coffee they drink. For Question 2, we anticipate that willingness to pay will vary most clearly across employment status, given likely differences in disposable income, and moderately across age, particularly if younger respondents favor specialty or trend-driven purchases while older respondents show more consistent spending habits. We do not expect a strong gender effect but will explore it given its inclusion in the dataset. The primary anticipated challenge is the overlap between heavy drinkers, strong-coffee drinkers, and self-rated experts, which may make it difficult to isolate which factor most directly drives spending; we will address this by visualizing each characteristic separately rather than combining them into a single model. We also anticipate some loss of precision due to missing spending data (~13%) and the binned nature of the spending and willingness-to-pay variables. A likely success of this analysis will be a clear, practical takeaway for coffee shop owners and roasters regarding which customer segments are most worth targeting with premium offerings or subscription models. 
+
+
+## Timeline
+
+Sept 17 - Sept 21: Explore dataset and codebook individually; each member drafts two candidate research questions; complete initial descriptive/exploratory analysis.
+Sept 22 - Sept 25: Finalize the two team research questions; draft assigned proposal sections (Introduction, Dataset, Analysis Plan, Discussion, Timeline) collaboratively; target a solid initial draft by Friday, Sept 25.
+Sept 26 - Sept 28: Review the full draft as a team, revise, incorporate feedback, transfer finalized sections from the Google Doc into proposal.qmd in RStudio, and commit/push to GitHub.
+Sept 29 - Oct 5: Begin data cleaning and exploratory analysis for Question 1 and Question 2; draft initial visualizations.
+Oct 6 - Oct 10: Finalize plots (two per question), write up Results and interpretation for each question.
+Oct 11 – Oct 13: Full team review of the complete project - analysis, writing, and plots; proofread and polish.
+Oct 14: Submit final Project 1 by 11:59 pm.
+
+
+
