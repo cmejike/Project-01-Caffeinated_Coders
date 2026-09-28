@@ -20,25 +20,25 @@ library(tidyverse)
 coffee <- read_csv("data/coffee_survey.csv")
 ```
 
-**Introduction**
+## **Introduction**
 
 When selecting our dataset, our team was interested in two key considerations: relatability and real-world relevance. We sought a dataset centered on a topic that most people could readily understand and connect with, while also providing an opportunity to explore a practical, real-world question. This dataset particularly appealed to us because it focuses on something familiar to millions of people, particularly in the United States: coffee. We were especially interested in examining the financial aspects of coffee consumption, with coffee shop owners and roasters as our intended audience. Specifically, we wanted to understand who spends the most on coffee each month and who is willing to pay a premium for a single cup. Such information may be relevant to business decisions involving pricing, subscription models, premium offerings, and customer targeting.
 
 The dataset was collected through a one-time, voluntary survey; therefore, our analysis is primarily descriptive and exploratory, with a focus on identifying patterns and associations. Establishing causality is beyond the scope of what this dataset can support. An earlier analysis of this survey by McKeon Aloe (2023) compared coffee spending across roast preferences and income levels and observed that people who spent more tended to prefer lighter roasts and that the most people would pay for a cup varied little by income. However, less is known about the characteristics associated with higher monthly coffee expenditures and a greater willingness to pay per cup. Our goal is to explore whether these outcomes are associated with factors such as coffee consumption, level of interest in coffee, preference for stronger coffee, and demographic characteristics.
 
-**Dataset description**
+## **Dataset description**
 
 Our dataset is based on the Great American Coffee Taste Test, conducted in October 2023 by James Hoffmann, an English barista, YouTuber, and author, in collaboration with the coffee company Cometeer. The data are available through the TidyTuesday project (May 14, 2024). Participants in the United States purchased a kit containing four coffees, tasted them blind during a livestream, and completed an online survey about their coffee habits, spending, and demographic characteristics, along with their ratings of the four coffees.
 
 The resulting dataset contains `r format(nrow(coffee), big.mark = ",")` rows, with each row representing a survey submission, and `r ncol(coffee)` variables. Most variables are categorical and stored as text, including binned ranges for age and spending. The numeric variables include self-rated coffee expertise, measured on a 1-10 scale, and ratings of bitterness, acidity, and personal preference for each of the four coffees, measured on a 1-5 scale. The sample is likely to consist largely of people who are engaged with coffee because participation was voluntary and the survey was associated with a specialty-coffee YouTuber. Therefore, the findings are not generalizable and should not be interpreted as representative of the general U.S. population.
 
-**Dataset Details**
+## **Dataset Details**
 
-**Respondents**
+### **Respondents**
 
 We first explored the dataset to provide context about the population represented in the survey. In the dataset, 50% of respondents are between 25 and 34 years old, and 72% reported their gender are men. Their coffee-related behaviors also suggest a strong interest in coffee. Approximately 92% drink coffee at home; among the 3,657 home brewers, 63% use pour-over and 42% use espresso. In addition, 66% drink their coffee black, while 43% add milk, a dairy alternative, or creamer, and 13% add sugar or another sweetener. Among the 710 respondents who reported purchasing coffee on the go, 62% purchase from specialty coffee shops, 55% from local cafés, and 46% from national chains. Most respondents reported drinking coffee because they enjoy its taste (94%), while 57% reported drinking it for the caffeine. The level of engagement with coffee is also reflected in spending on equipment: 22% of respondents reported spending more than \$1,000 on coffee equipment during the previous five years.
 
-**Variables used for analysis**
+### **Variables used for analysis**
 
 To answer our research questions, we selected variables that capture coffee consumption, coffee preferences and expertise, spending, willingness to pay, and demographic characteristics.
 
@@ -53,7 +53,7 @@ To answer our research questions, we selected variables that capture coffee cons
 | gender | Gender | Categorical | Q2 | 12.8 |
 | employment_status | Employment status | Categorical | Q2 | 15.4 |
 
-**Data considerations and limitations**
+### **Data considerations and limitations**
 
 As aforementioned, the sample is self-selected and consists primarily of engaged coffee consumers, so findings should not be generalized to the broader U.S. coffee-drinking population. Approximately 13% of respondents are missing both spending variables, which may reflect survey drop-off and could result in slight overrepresentation of more engaged coffee consumers among those included in the analysis. Spending and willingness to pay are recorded as ranges stored as text, thus, we will convert them to ordered factors and treat them as categories. Some demographic groups are also small and may need to be combined for analysis. Many heavy drinkers in this sample also rate themselves as coffee experts, so the groups we compare in Question 1 overlap. Our plots will show each characteristic separately, so a pattern in one group may partly reflect another.
 
