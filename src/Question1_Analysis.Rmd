@@ -3,3 +3,31 @@ title: "Question1_Analysis"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+```{r data_input}
+coffee <- read_csv('../data/coffee_survey.csv', show_col_types = FALSE)
+```
+
+
+```{r data_preprocessing}
+cols = c('total_spend','caffeine','roast_level', 'strength')
+```
+
+
+We want to remove NA values so that we just look at the data that is complete.To justify this we need to see what percentage of our data will be left over if we decide to do this.
+```{r}
+paste("Missing data %:",round((nrow(coffee[cols])-nrow(na.omit(coffee[cols])))/nrow(coffee[cols])*100,2))
+paste("Leftover samples: ",nrow(na.omit(coffee[cols])))
+```
+
+We are removing 13.78% of the data, but we will still have 3485 of the 4042 samples. This is acceptable.
+
+```{r}
+coffee_no_na <- na.omit(coffee[cols])
+```
+
