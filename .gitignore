@@ -6,7 +6,12 @@
 .DS_Store
 
 /.quarto/
-proposal.html
 
+#files that should be kept locally:
 data/coffee_survey.csv
-data/README.html
+README.html
+proposal.html
+abstract.html
+about.html
+about.pdf
+about.docx
