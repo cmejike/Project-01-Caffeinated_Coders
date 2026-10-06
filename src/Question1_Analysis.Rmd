@@ -8,26 +8,29 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+# Data collection
 
 ```{r data_input}
 coffee <- read_csv('../data/coffee_survey.csv', show_col_types = FALSE)
 ```
 
+# Data Preprocessing
 
-```{r data_preprocessing}
+```{r column_choice_for_visualization}
 cols = c('total_spend','caffeine','roast_level', 'strength')
 ```
 
-
 We want to remove NA values so that we just look at the data that is complete.To justify this we need to see what percentage of our data will be left over if we decide to do this.
-```{r}
+
+```{r na_value_inspection}
 paste("Missing data %:",round((nrow(coffee[cols])-nrow(na.omit(coffee[cols])))/nrow(coffee[cols])*100,2))
 paste("Leftover samples: ",nrow(na.omit(coffee[cols])))
 ```
 
 We are removing 13.78% of the data, but we will still have 3485 of the 4042 samples. This is acceptable.
 
-```{r}
+```{r create_clean_dataframe}
 coffee_no_na <- na.omit(coffee[cols])
 ```
 
+# Visualizations
