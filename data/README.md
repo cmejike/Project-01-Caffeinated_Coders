@@ -10,6 +10,12 @@ The dataset contains 4,042 observations and 57 variables. Each row represents on
 
 Because participation was voluntary and the survey was associated with a specialty-coffee YouTuber, the sample likely overrepresents people who are highly engaged with coffee. Therefore, findings should not be generalized to the broader U.S. population.
 
+In order to retrieve the data please execute the following command while in the project root directory:
+
+```bash
+Rscript src/DataCleaning.R
+```
+
 ## Codebook
 
 | Variable | Class | Description |
