@@ -13,7 +13,7 @@ Because participation was voluntary and the survey was associated with a special
 In order to retrieve the data please execute the following command while in the project root directory:
 
 ```bash
-Rscript src/DataCleaning.R
+Rscript src/GetCleanData.R
 ```
 
 ## Codebook
