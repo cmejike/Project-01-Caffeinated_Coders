@@ -6,6 +6,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(ggplot2)
 ```
 
 # Data collection
@@ -33,4 +34,146 @@ We are removing 13.78% of the data, but we will still have 3485 of the 4042 samp
 coffee_no_na <- na.omit(coffee[cols])
 ```
 
+Assuming that people underestimate how much money they spend on small purposes:
+
+```{r}
+coffee_no_na <- coffee_no_na %>%
+  mutate(
+    total_spend = case_when(
+      total_spend == "<$20" ~ 20,
+      total_spend == "$20-$40" ~ 40,
+      total_spend == "$40-$60" ~ 60,
+      total_spend == "$60-$80" ~ 80,
+      total_spend == "$80-$100" ~ 100,
+      total_spend == ">$100" ~ 120
+    )
+  )
+```
+
+
+
 # Visualizations
+
+
+```{r}
+coffee_spend_summary <- coffee_no_na %>%
+  count(caffeine, total_spend, name = "n") %>%
+  group_by(caffeine) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ungroup()
+
+# Overall distribution
+overall_spend_summary <- coffee_no_na %>%
+  count(total_spend, name = "n") %>%
+  mutate(proportion = n / sum(n))
+
+ggplot(
+  coffee_spend_summary,
+  aes(
+    x = total_spend,
+    y = proportion,
+    group = caffeine,
+    color = caffeine
+  )
+) +
+  geom_line() +
+  geom_point() +
+
+  # Overall distribution reference line
+  geom_line(
+    data = overall_spend_summary,
+    aes(
+      x = total_spend,
+      y = proportion
+    ),
+    inherit.aes = FALSE,
+    color = "black",
+    linewidth = 1.2,
+    linetype = "dashed"
+  ) +
+
+  geom_point(
+    data = overall_spend_summary,
+    aes(
+      x = total_spend,
+      y = proportion
+    ),
+    inherit.aes = FALSE,
+    color = "black",
+    size = 2
+  ) +
+
+  labs(
+    x = "Estimated Monthly Coffee Spending ($)",
+    y = "Proportion of Respondents",
+    color = "Caffeine",
+    title = "Monthly Coffee Spending by Caffeine Consumption",
+    subtitle = "Dashed line represents the overall distribution"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+
+
+
+
+```{r}
+roast_spend_summary <- coffee_no_na %>%
+  count(roast_level, total_spend, name = "n") %>%
+  group_by(roast_level) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ungroup()
+
+overall_spend_summary <- coffee_no_na %>%
+  count(total_spend, name = "n") %>%
+  mutate(proportion = n / sum(n))
+
+ggplot(
+  roast_spend_summary,
+  aes(
+    x = total_spend,
+    y = proportion,
+    group = roast_level,
+    color = roast_level
+  )
+) +
+  geom_line() +
+  geom_point() +
+
+  # Overall distribution
+  geom_line(
+    data = overall_spend_summary,
+    aes(
+      x = total_spend,
+      y = proportion
+    ),
+    inherit.aes = FALSE,
+    color = "black",
+    linewidth = 1.2,
+    linetype = "dashed"
+  ) +
+
+  geom_point(
+    data = overall_spend_summary,
+    aes(
+      x = total_spend,
+      y = proportion
+    ),
+    inherit.aes = FALSE,
+    color = "black",
+    size = 2
+  ) +
+
+  labs(
+    x = "Estimated Monthly Coffee Spending ($)",
+    y = "Proportion of Respondents",
+    color = "Roast Level",
+    title = "Monthly Coffee Spending by Roast Level",
+    subtitle = "Dashed line represents the overall distribution"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+
