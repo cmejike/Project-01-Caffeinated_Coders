@@ -13,12 +13,15 @@ library(ggplot2)
 
 ```{r data_input}
 coffee <- read_csv('../data/coffee_survey.csv', show_col_types = FALSE)
+coffee$cups = as.factor(coffee$cups)
+coffee$strength = as.factor(coffee$strength)
 ```
+
 
 # Data Preprocessing
 
 ```{r column_choice_for_visualization}
-cols = c('total_spend','caffeine','roast_level', 'strength')
+cols = c('cups','total_spend','caffeine','roast_level', 'strength','expertise')
 ```
 
 We want to remove NA values so that we just look at the data that is complete.To justify this we need to see what percentage of our data will be left over if we decide to do this.
@@ -28,11 +31,12 @@ paste("Missing data %:",round((nrow(coffee[cols])-nrow(na.omit(coffee[cols])))/n
 paste("Leftover samples: ",nrow(na.omit(coffee[cols])))
 ```
 
-We are removing 13.78% of the data, but we will still have 3485 of the 4042 samples. This is acceptable.
+We are removing 13.83% of the data, but we will still have 3483 of the 4042 samples. This is acceptable.
 
 ```{r create_clean_dataframe}
 coffee_no_na <- na.omit(coffee[cols])
 ```
+
 
 Assuming that people underestimate how much money they spend on small purposes:
 
@@ -51,129 +55,76 @@ coffee_no_na <- coffee_no_na %>%
 ```
 
 
+```{r}
+coffee_enthusiest<- coffee_no_na[coffee_no_na$expertise>=7,]
+strong_coffee_drinkers <- coffee_no_na[coffee_no_na$strength %in% c('Somewhat strong', 'Very strong'),]
+heavy_drinkers <- coffee_no_na[coffee_no_na$cups %in% c(3,'More than 4'),]
 
-# Visualizations
+coffee_enthusiest$group <- "Coffee Enthusiasts"
+strong_coffee_drinkers$group <- "Strong Coffee Drinkers"
+heavy_drinkers$group <- "Heavy Drinkers"
 
+coffee_groups <- bind_rows(
+  coffee_enthusiest,
+  strong_coffee_drinkers,
+  heavy_drinkers
+)
+
+```
 
 ```{r}
-coffee_spend_summary <- coffee_no_na %>%
-  count(caffeine, total_spend, name = "n") %>%
-  group_by(caffeine) %>%
-  mutate(proportion = n / sum(n)) %>%
-  ungroup()
-
-# Overall distribution
-overall_spend_summary <- coffee_no_na %>%
-  count(total_spend, name = "n") %>%
-  mutate(proportion = n / sum(n))
-
-ggplot(
-  coffee_spend_summary,
-  aes(
-    x = total_spend,
-    y = proportion,
-    group = caffeine,
-    color = caffeine
-  )
-) +
-  geom_line() +
-  geom_point() +
-
-  # Overall distribution reference line
-  geom_line(
-    data = overall_spend_summary,
-    aes(
-      x = total_spend,
-      y = proportion
-    ),
-    inherit.aes = FALSE,
-    color = "black",
-    linewidth = 1.2,
-    linetype = "dashed"
-  ) +
-
-  geom_point(
-    data = overall_spend_summary,
-    aes(
-      x = total_spend,
-      y = proportion
-    ),
-    inherit.aes = FALSE,
-    color = "black",
-    size = 2
-  ) +
-
-  labs(
-    x = "Estimated Monthly Coffee Spending ($)",
-    y = "Proportion of Respondents",
-    color = "Caffeine",
-    title = "Monthly Coffee Spending by Caffeine Consumption",
-    subtitle = "Dashed line represents the overall distribution"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_minimal()
+coffee_groups # this will contain duplicate rows except the groups so overall distributions should be made on coffee_no_na
 ```
 
 
-
-
-
 ```{r}
-roast_spend_summary <- coffee_no_na %>%
-  count(roast_level, total_spend, name = "n") %>%
-  group_by(roast_level) %>%
+coffee_caffeine <- coffee_groups %>%
+  count(group, caffeine) %>%
+  group_by(group) %>%
   mutate(proportion = n / sum(n)) %>%
   ungroup()
 
-overall_spend_summary <- coffee_no_na %>%
-  count(total_spend, name = "n") %>%
-  mutate(proportion = n / sum(n))
-
-ggplot(
-  roast_spend_summary,
-  aes(
-    x = total_spend,
-    y = proportion,
-    group = roast_level,
-    color = roast_level
-  )
-) +
-  geom_line() +
-  geom_point() +
-
-  # Overall distribution
-  geom_line(
-    data = overall_spend_summary,
-    aes(
-      x = total_spend,
-      y = proportion
-    ),
-    inherit.aes = FALSE,
-    color = "black",
-    linewidth = 1.2,
-    linetype = "dashed"
-  ) +
-
-  geom_point(
-    data = overall_spend_summary,
-    aes(
-      x = total_spend,
-      y = proportion
-    ),
-    inherit.aes = FALSE,
-    color = "black",
-    size = 2
-  ) +
-
-  labs(
-    x = "Estimated Monthly Coffee Spending ($)",
-    y = "Proportion of Respondents",
-    color = "Roast Level",
-    title = "Monthly Coffee Spending by Roast Level",
-    subtitle = "Dashed line represents the overall distribution"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_minimal()
+ggplot(coffee_caffeine, aes(x = caffeine, y = proportion)) +
+  geom_col() +
+  facet_wrap(~group) +
+  scale_y_continuous(labels = scales::percent)
 ```
 
+```{r}
+coffee_roast_level <- coffee_groups %>%
+  filter(roast_level %in% c("Light", "Medium", "Dark")) %>%
+  count(group, roast_level) %>%
+  group_by(group) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ungroup()
+
+ggplot(coffee_roast_level, aes(x = roast_level, y = proportion)) +
+  geom_col() +
+  facet_wrap(~group) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+
+```{r}
+coffee_spend <- coffee_groups %>%
+  count(group, total_spend) %>%
+  group_by(group) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ungroup()
+
+ggplot(coffee_spend, aes(
+  x = total_spend,
+  y = proportion,
+  group = group,
+  color = group
+)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Total Spend",
+    y = "Proportion of Group",
+    color = "Group"
+  )
+```
 
