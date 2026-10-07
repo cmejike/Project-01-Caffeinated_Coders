@@ -128,3 +128,34 @@ ggplot(coffee_spend, aes(
   )
 ```
 
+
+```{r}
+coffee_spend <- coffee_groups %>%
+  count(group, total_spend) %>%
+  group_by(group) %>%
+  mutate(
+    proportion = n / sum(n),
+    gross_revenue = total_spend * proportion * 1000,
+    cumulative_revenue = cumsum(gross_revenue)
+  ) %>%
+  ungroup()
+
+ggplot(
+  coffee_spend,
+  aes(
+    x = total_spend,
+    y = cumulative_revenue,
+    group = group,
+    color = group
+  )
+) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Expenditure per month per person",
+    y = "Cumulative Gross Revenue",
+    color = "Group"
+  ) +
+  scale_y_continuous(labels = scales::dollar)
+```
+
