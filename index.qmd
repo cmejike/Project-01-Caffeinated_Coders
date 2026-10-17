@@ -1,5 +1,267 @@
 ---
-title: "index"
+title: "Brewed Behavior"
+subtitle: "An Analysis of Coffee Consumption"
+author: "Caffeinated Coders: Jonathan, Tanu, Chidera"
 format: html
+editor: visual
+execute:
+  echo: false
+  warning: false
+  message: false
 ---
 
+```{r}
+#| label: load-packages-and-data
+
+library(tidyverse)
+library(scales)
+
+coffee <- read_csv("data/coffee_survey.csv", show_col_types = FALSE)
+```
+
+## Introduction
+
+Coffee is part of daily life for millions of people in the United States, and that is a big part of why we chose this dataset. We wanted a topic anyone could relate to that could also answer a practical question. We decided to focus on money: who spends the most on coffee each month, and who is willing to pay a premium for a single cup. These are questions coffee shop owners and roasters face when they set prices, design subscriptions, or decide which customers to target.
+
+The data come from the Great American Coffee Taste Test, run in October 2023 by James Hoffmann, an English barista, YouTuber, and author, together with the coffee company Cometeer. Participants in the United States bought a kit of four coffees, tasted them blind during a livestream, and filled out an online survey about their coffee habits, spending, and demographics, along with their ratings of each coffee. The version we use, released through [TidyTuesday](https://github.com/rfordatascience/tidytuesday/blob/main/data/2024/2024-05-14) on May 14, 2024, has `r format(nrow(coffee), big.mark = ",")` responses and `r ncol(coffee)` variables. Most variables are categorical, including ranges for age and spending, while self-rated coffee expertise (1 to 10) and the coffee ratings (1 to 5) are numeric. Because people chose to take part after following a specialty-coffee YouTuber, the sample leans toward engaged coffee drinkers, so we describe patterns within this group rather than causes or trends for all coffee drinkers.
+
+## Question 1: Who spends more each month, and who pays more per cup?
+
+**Who spends more on coffee each month, and who will pay more for a single cup: heavy drinkers, strong-coffee drinkers, or coffee enthusiasts?**
+
+### Introduction
+
+A coffee shop makes money in two ways. It sells a lot of ordinary cups, and it sells a smaller number of cups at premium prices. It is easy to assume the same customers are behind both: that heavy drinkers spend the most, that people who like strong coffee are the premium market, or that enthusiasts will pay for anything. But spending a lot in a month and paying a lot for one cup are different behaviors, and a customer can rank high on one and low on the other. We wanted to test these assumptions with data, because aiming a loyalty program or a premium menu at the wrong customers costs a business money.
+
+To answer the question, we compare three customer characteristics: how many cups people drink a day (`cups`), how strong they like their coffee (`strength`), and how they rate their own coffee expertise on a 1 to 10 scale (`expertise`). We look at each one against two outcomes, typical monthly spending on coffee (`total_spend`) and the most someone would pay for a single cup (`most_willing`). This survey suits the question because it records all five for the same people, so each characteristic can be compared on both outcomes side by side. An earlier analysis of this survey by [McKeon Aloe (2023)](https://rmckeon.medium.com/great-american-coffee-taste-test-breakdown-7f3fdcc3c41d) compared spending across roast preferences and income, so we focus on drinking habits and interest in coffee instead.
+
+### Approach
+
+We grouped each characteristic into three ordered levels: 1 cup or less, 2 cups, or 3+ cups a day; light, medium, or strong coffee; and novice (1 to 3), middle (4 to 6), or expert (7 to 10) self-rated expertise. We refer to the expert group as enthusiasts. For monthly spending, we combined the six original ranges into three tiers (under \$20, \$20 to \$60, and \$60 or more), and for willingness to pay, we used a single cutoff: whether someone would pay \$15 or more for a cup. Our first plot is a faceted 100% stacked horizontal bar chart showing the spending tiers for each group, with group sizes next to each bar. We chose stacked bars because spending was recorded as ranges, not exact amounts, so showing the share in each tier is more honest than a box plot or an average, both of which would need made-up dollar values.
+
+Our second plot is a faceted connected dot plot of the share of each group willing to pay \$15 or more, with 95% confidence intervals and a label showing how much the share changes from the lowest to the highest group in each panel. Position on a shared scale is one of the easiest encodings to read accurately, and the connecting lines make it simple to see which characteristic has the steepest rise. Color carries meaning in both plots. The spending tiers run from light gold to dark brown, so their order shows through lightness and still works for color-blind readers, and in the second plot the enthusiast panel is highlighted in the same deep brown as the top spending tier while the other two panels are grey. Every value is also printed on the plot, so no one has to rely on color alone.
+
+### Analysis
+
+```{r}
+#| label: q1-data-prep
+
+# Question 1 setup -------------------------------------------------------------
+# Shared colors and theme, a complete-case sample, three-level groups for each
+# characteristic, and a long table with one row per respondent per
+# characteristic. Group labels include the group size shown in both plots.
+
+tier_colours <- c("Under $20" = "#F2C14E",
+                  "$20-$60"   = "#A8741A",
+                  "$60+"      = "#3E2A0E")
+highlight  <- "#7A4E12"   # deep brown, matching Plot 1's darkest tier
+base_line  <- "#707070"   # mid-grey for the other two panels
+panel_grey <- "#EDEDED"
+ink        <- "#1F2933"
+
+source_caption <- "Source: Great American Coffee Taste Test (2023), via TidyTuesday (2024-05-14)"
+
+theme_q1 <- function(base_size = 15) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.background  = element_rect(fill = "white", colour = NA),
+      panel.background = element_rect(fill = panel_grey, colour = NA),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(colour = "white", linewidth = 0.6),
+      plot.title.position   = "plot",
+      plot.caption.position = "plot",
+      plot.title    = element_text(face = "bold", size = rel(1.3), colour = ink),
+      plot.subtitle = element_text(colour = "grey35", margin = margin(b = 12)),
+      plot.caption  = element_text(colour = "grey50", size = rel(0.65),
+                                   hjust = 0, margin = margin(t = 12)),
+      strip.text    = element_text(face = "bold", colour = ink, hjust = 0,
+                                   size = rel(1)),
+      axis.text     = element_text(colour = ink),
+      plot.margin   = margin(18, 25, 12, 18)
+    )
+}
+
+q1_vars <- c("cups", "strength", "expertise", "total_spend", "most_willing")
+
+trait_labels <- c(cups_group      = "Heavy drinkers (cups per day)",
+                  strength_group  = "Strong-coffee drinkers (preferred strength)",
+                  expertise_group = "Coffee enthusiasts (self-rated expertise)")
+level_order <- c("1 cup or less", "2 cups", "3+ cups",
+                 "Light", "Medium", "Strong",
+                 "Novice (1-3)", "Middle (4-6)", "Expert (7-10)")
+
+coffee_q1 <- coffee |>
+  filter(if_all(all_of(q1_vars), ~ !is.na(.x))) |>
+  mutate(
+    cups_group = case_when(
+      cups %in% c("Less than 1", "1")      ~ "1 cup or less",
+      cups == "2"                          ~ "2 cups",
+      cups %in% c("3", "4", "More than 4") ~ "3+ cups"
+    ),
+    strength_group = case_when(
+      strength %in% c("Weak", "Somewhat light")         ~ "Light",
+      strength == "Medium"                              ~ "Medium",
+      strength %in% c("Somewhat strong", "Very strong") ~ "Strong"
+    ),
+    expertise_group = case_when(
+      expertise <= 3 ~ "Novice (1-3)",
+      expertise <= 6 ~ "Middle (4-6)",
+      TRUE           ~ "Expert (7-10)"
+    ),
+    spend_tier = case_when(
+      total_spend == "<$20"                              ~ "Under $20",
+      total_spend %in% c("$20-$40", "$40-$60")           ~ "$20-$60",
+      total_spend %in% c("$60-$80", "$80-$100", ">$100") ~ "$60+"
+    ),
+    spend_tier   = factor(spend_tier, levels = names(tier_colours)),
+    pays_15_plus = most_willing %in% c("$15-$20", "More than $20")
+  )
+
+n_q1 <- nrow(coffee_q1)   # use inline in the write-up: `r n_q1`
+
+# One row per respondent per trait; group labels include the group size
+q1_long <- coffee_q1 |>
+  select(submission_id, spend_tier, pays_15_plus,
+         cups_group, strength_group, expertise_group) |>
+  pivot_longer(c(cups_group, strength_group, expertise_group),
+               names_to = "trait", values_to = "level") |>
+  mutate(trait = factor(trait, levels = names(trait_labels),
+                        labels = trait_labels),
+         level = factor(level, levels = level_order)) |>
+  add_count(trait, level, name = "group_n") |>
+  mutate(level_n = paste0(level, "\n(n = ", comma(group_n), ")"),
+         level_n = fct_reorder(level_n, as.numeric(level)))
+
+# Values used in the text
+n_total         <- nrow(coffee)
+pct_kept        <- round(n_q1 / n_total * 100)
+min_group_n     <- min(count(q1_long, trait, level)$n)
+# Standard errors scale with 1 / sqrt(n), so this is how much wider the
+# confidence intervals are than they would be with every respondent
+ci_widening_pct <- round((sqrt(n_total / n_q1) - 1) * 100)
+```
+
+Before plotting, we kept only respondents who answered all five Question 1 variables, which left `r format(n_q1, big.mark = ",")` of `r format(n_total, big.mark = ",")` people (`r pct_kept`%). Most of the people we dropped skipped both spending questions, probably because they left the survey before reaching them, and the share missing spending answers was about the same in every group we compare. Since we are estimating percentages rather than running hypothesis tests, dropping these respondents costs some precision but not much: the smallest group still has `r min_group_n` people, and our confidence intervals are only about `r ci_widening_pct`% wider than they would be with the full sample. We did not use multiple imputation because most missing values are in our two outcome variables, and imputing them would mean assuming that people who left early answer like those who stayed, which we cannot check. The people we dropped rated their expertise slightly lower on average, so our results may lean a little toward more engaged coffee drinkers.
+
+```{r}
+#| label: fig-q1-monthly-spend
+#| fig-width: 12
+#| fig-height: 9
+#| fig-cap: "Monthly coffee spending by daily consumption, preferred strength, and self-rated expertise."
+#| fig-alt: "Faceted 100% stacked horizontal bar chart showing, for each group, the share of respondents spending under $20, $20 to $60, and $60 or more on coffee per month."
+
+# Plot 1: monthly spending -----------------------------------------------------
+# Each bar shows how one group splits across three spending tiers.
+
+plot1_data <- q1_long |>
+  count(trait, level_n, spend_tier) |>
+  group_by(trait, level_n) |>
+  mutate(share = n / sum(n)) |>
+  ungroup()
+
+plot1 <- ggplot(plot1_data,
+                aes(x = share, y = fct_rev(level_n), fill = spend_tier)) +
+  geom_col(width = 0.72, colour = "grey15", linewidth = 0.3,
+           position = position_fill(reverse = TRUE)) +
+  # Percentages inside segments; dark text on the light tier, white elsewhere
+  geom_text(aes(group = spend_tier,
+                label = if_else(share >= 0.07, percent(share, accuracy = 1), ""),
+                colour = spend_tier == "Under $20"),
+            position = position_fill(vjust = 0.5, reverse = TRUE),
+            size = 4.3, show.legend = FALSE) +
+  facet_wrap(~ trait, ncol = 1, scales = "free_y") +
+  scale_x_continuous(labels = label_percent(), breaks = seq(0, 1, 0.1),
+                     expand = expansion(mult = c(0, 0.01))) +
+  scale_fill_manual(values = tier_colours, name = "Monthly coffee spending:") +
+  scale_colour_manual(values = c(`TRUE` = ink, `FALSE` = "white")) +
+  labs(
+    title    = "Who spends more on coffee each month?",
+    subtitle = "Heavy drinkers and enthusiasts are the most likely to spend $60 or more a month",
+    x = NULL, y = NULL, caption = source_caption
+  ) +
+  theme_q1() +
+  theme(legend.position      = "top",
+        legend.justification = "left",
+        panel.grid.major.y   = element_blank(),
+        panel.spacing.y      = unit(1, "lines"),
+        axis.text.y          = element_text(lineheight = 0.9))
+
+plot1
+```
+
+```{r}
+#| label: fig-q1-willing-to-pay
+#| fig-width: 13
+#| fig-height: 6.5
+#| fig-cap: "Share willing to pay $15 or more for a single cup, by daily consumption, preferred strength, and self-rated expertise."
+#| fig-alt: "Faceted connected dot plot with 95% confidence intervals showing the share of each group willing to pay $15 or more for one cup. The self-rated expertise panel is highlighted in brown."
+
+# Plot 2: willingness to pay a premium -----------------------------------------
+# Points show each group's share willing to pay $15+, whiskers show 95%
+# confidence intervals, and lines connect the ordered groups.
+
+plot2_data <- q1_long |>
+  group_by(trait, level, level_n, group_n) |>
+  summarise(p = mean(pays_15_plus), .groups = "drop") |>
+  mutate(
+    se    = sqrt(p * (1 - p) / group_n),
+    lower = pmax(p - 1.96 * se, 0),
+    upper = pmin(p + 1.96 * se, 1),
+    is_highlight = trait == "Coffee enthusiasts (self-rated expertise)"
+  )
+
+# Lowest-to-highest change in each panel, in percentage points
+plot2_gap <- plot2_data |>
+  group_by(trait, is_highlight) |>
+  summarise(gap = (last(p) - first(p)) * 100, .groups = "drop") |>
+  mutate(label = sprintf("%+.0f points", gap))
+
+plot2 <- ggplot(plot2_data,
+                aes(x = level_n, y = p, colour = is_highlight,
+                    group = trait)) +
+  geom_line(linewidth = 1.4) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.08,
+                linewidth = 0.8) +
+  geom_point(shape = 21, size = 4.5, stroke = 1.6, fill = "white") +
+  # Values sit to the right of each point, clear of whiskers and lines
+  geom_text(aes(label = percent(p, accuracy = 1)), hjust = 0,
+            nudge_x = 0.12, nudge_y = -0.014, size = 4.4, fontface = "bold",
+            show.legend = FALSE) +
+  geom_text(data = plot2_gap,
+            aes(x = 1, y = 0.47, label = label, colour = is_highlight),
+            inherit.aes = FALSE, hjust = 0.2, size = 5.2, fontface = "bold",
+            show.legend = FALSE) +
+  facet_wrap(~ trait, scales = "free_x",
+             labeller = labeller(trait = \(x) str_replace(x, " \\(", "\n("))) +
+  scale_y_continuous(labels = label_percent(), limits = c(0, 0.5),
+                     breaks = seq(0, 0.5, 0.1)) +
+  scale_colour_manual(values = c(`TRUE` = highlight, `FALSE` = base_line),
+                      guide = "none") +
+  labs(
+    title    = "Enthusiasts show the steepest rise in willingness to pay a premium",
+    subtitle = "Share willing to pay $15 or more for a single cup; whiskers show 95% confidence intervals",
+    x = NULL, y = "Willing to pay $15+", caption = source_caption
+  ) +
+  theme_q1() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing.x    = unit(1.8, "lines"),
+        axis.text.x        = element_text(lineheight = 0.9),
+        axis.title.y       = element_text(colour = "grey35",
+                                          margin = margin(r = 10)))
+
+plot2
+```
+
+### Discussion
+
+The two plots point to different customers. Monthly spending goes up with consumption: 38% of people who drink three or more cups a day spend \$60 or more a month, compared with 11% of those who drink one cup or less (@fig-q1-monthly-spend). It also goes up with expertise, from 11% of novices to 27% of experts, and only 5% of experts spend under \$20 a month, compared with 38% of novices. Willingness to pay a premium follows a different pattern. Expertise shows by far the biggest jump, from 13% of novices to 37% of experts willing to pay \$15 or more for a cup, while consumption shows a smaller rise (21% to 33%) and preferred strength makes little difference on either outcome (@fig-q1-willing-to-pay).
+
+Some of the heavy-drinker pattern is simple arithmetic. People who drink more cups buy more coffee, so their monthly total is higher even if each cup costs the same. Enthusiasts look different, since their higher spending seems to come from what they buy rather than how much they drink. Someone who knows a lot about coffee may be more likely to buy specialty beans, café drinks, or brewing gear that costs more per cup, which would also explain why they are more willing to pay \$15 for one. Strength may matter little because strong coffee is cheap to make, and specialty coffee is usually priced on origin and quality rather than intensity, but the survey does not record what people actually buy or their income, so these explanations are our best guesses.
+
+There are limits to how far these results reach. The groups overlap: about half of the heavy drinkers in our sample also rate themselves as experts, so each panel shows one characteristic on its own, and part of the consumption pattern may really be an expertise pattern. Spending is self-reported in ranges, expertise is self-rated, and the people who took part were fans of a specialty-coffee YouTuber, so the results describe engaged coffee drinkers rather than the average customer. Still, the main takeaway for a coffee shop is clear. Heavy drinkers stand out for everyday spending, while enthusiasts are the customers most open to premium prices.
+
+## References
+
+McKeon Aloe, R. (2023, November 28). *Great American Coffee Taste Test breakdown*. Medium. <https://rmckeon.medium.com/great-american-coffee-taste-test-breakdown-7f3fdcc3c41d>
+
+rfordatascience. (2024). *TidyTuesday: Coffee survey* (2024-05-14) \[Data set\]. GitHub. <https://github.com/rfordatascience/tidytuesday/blob/main/data/2024/2024-05-14>
