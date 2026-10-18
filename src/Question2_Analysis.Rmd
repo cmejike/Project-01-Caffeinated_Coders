@@ -167,7 +167,7 @@ ggplot(
   labs(
     title = "Average Coffee Spending by Age and Education",
     x = "Age Group",
-    y = "Average Coffee Spending per Respondent ($)",
+    y = "Mean Coffee Spending per Person ($)",
     color = "Education Level"
   ) +
   theme_minimal() +

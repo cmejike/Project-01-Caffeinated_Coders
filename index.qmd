@@ -260,6 +260,236 @@ Some of the heavy-drinker pattern is simple arithmetic. People who drink more cu
 
 There are limits to how far these results reach. The groups overlap: about half of the heavy drinkers in our sample also rate themselves as experts, so each panel shows one characteristic on its own, and part of the consumption pattern may really be an expertise pattern. Spending is self-reported in ranges, expertise is self-rated, and the people who took part were fans of a specialty-coffee YouTuber, so the results describe engaged coffee drinkers rather than the average customer. Still, the main takeaway for a coffee shop is clear. Heavy drinkers stand out for everyday spending, while enthusiasts are the customers most open to premium prices.
 
+
+## Question 2: Is monthly coffee expenditure associated with age, gender, and employment status?
+
+### Introduction
+
+Coffee is a popular beverage, and consumers differ in how much they spend on it each month. Understanding these differences can help coffee shops and roasters better understand their customers and make informed decisions about pricing and marketing. This analysis investigates whether monthly coffee expenditure is associated with age, gender, and employment status. We are interested in this question because identifying differences in spending habits between demographic groups could help businesses understand which customer groups contribute differently to coffee sales. To answer this question, we will use the survey dataset's total_spend variable, which represents respondents' reported monthly coffee expenditure, alongside the age, gender, and employment_status variables. These demographic variables allow us to compare spending patterns across different groups. Monthly expenditure reflects both consumers' willingness to spend and their coffee consumption habits, including how frequently they purchase coffee. Therefore, rather than measuring willingness to pay for a single cup, this analysis focuses on overall monthly coffee spending and how it varies across demographic groups.
+
+### Approach 
+
+To investigate whether monthly coffee expenditure is associated with age, gender, and employment status, we will create two different visualizations. The first plot will be a grouped bar chart showing the average monthly coffee expenditure across age groups, with bars distinguished by gender using different colors. A bar chart is appropriate because it allows us to compare expenditure across discrete demographic categories and identify potential differences between age groups and genders. Using color mapping for gender will make it easier to compare spending patterns between men and women within each age group.
+
+Plots 2 and 3 use line graphs to compare average monthly coffee expenditure across age groups, with separate lines representing different education levels. Line graphs are useful for identifying trends across ordered age categories and comparing spending patterns between groups. Plot 2 uses different colors to distinguish all education levels, allowing us to observe how expenditure varies across educational backgrounds as age increases. Plot 3 presents the same data but highlights respondents with a doctorate or professional degree in purple while displaying the remaining education levels in gray. This emphasis makes it easier to identify how respondents with a doctorate or professional degree generally have the highest mean monthly coffee expenditure across most age groups, allowing their spending patterns to stand out more clearly from those of other education levels.
+
+
+### Analysis
+
+#### Plot 1
+
+```{r}
+
+#Data retrival and cleaning:
+coffee <- read_csv('data/coffee_survey.csv', show_col_types = FALSE)
+coffee$cups = as.factor(coffee$cups)
+coffee$strength = as.factor(coffee$strength)
+cols = c('age','total_spend','gender', 'education_level')
+coffee_no_na <- na.omit(coffee[cols])
+
+age_levels <- c(
+  "<18 years old",
+  "18-24 years old",
+  "25-34 years old",
+  "35-44 years old",
+  "45-54 years old",
+  "55-64 years old",
+  ">65 years old"
+)
+
+# Prepare data: keep only the three gender categories
+coffee_processed <- coffee_no_na %>%
+  filter(gender %in% c("Male", "Female", "Non-binary")) %>%
+  mutate(
+    total_spend_numeric = case_when(
+      total_spend == "<$20" ~ 10,
+      total_spend == "$20-$40" ~ 30,
+      total_spend == "$40-$60" ~ 50,
+      total_spend == "$60-$80" ~ 70,
+      total_spend == "$80-$100" ~ 90,
+      total_spend == ">$100" ~ 110,
+      TRUE ~ NA_real_
+    ),
+    age = factor(age, levels = age_levels),
+    gender_group = factor(
+      gender,
+      levels = c("Male", "Female", "Non-binary")
+    )
+  ) %>%
+  filter(
+    !is.na(age),
+    !is.na(total_spend_numeric)
+  )
+
+# Calculate mean spending by age and gender
+age_gender_mean <- coffee_processed %>%
+  group_by(age, gender_group) %>%
+  summarise(
+    mean_spend = mean(total_spend_numeric, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+# Define colors
+gender_colors <- c(
+  "Male" = "lightblue",
+  "Female" = "pink",
+  "Non-binary" = "purple"
+)
+
+# Plot
+ggplot(
+  age_gender_mean,
+  aes(
+    x = age,
+    y = mean_spend,
+    fill = gender_group
+  )
+) +
+  # Dashed separators between age groups
+  geom_vline(
+    xintercept = seq(1.5, length(age_levels) - 0.5, by = 1),
+    linetype = "dashed",
+    color = "gray60",
+    linewidth = 0.5
+  ) +
+  geom_col(
+    position = position_dodge(width = 0.85),
+    width = 0.75
+  ) +
+  scale_fill_manual(
+    values = gender_colors,
+    drop = FALSE
+  ) +
+  scale_x_discrete(drop = FALSE) +
+  labs(
+    title = "Mean Coffee Spending by Age Group and Gender",
+    x = "Age Group",
+    y = "Mean Spending per Respondent ($)",
+    fill = "Gender"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    ),
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+```
+#### Plot 2 & 3
+```{r}
+# Calculate average spending by age and education level
+age_education_average <- coffee_processed %>%
+  group_by(age, education_level) %>%
+  summarise(
+    average_spending = mean(total_spend_numeric, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Plot average spending
+ggplot(
+  age_education_average,
+  aes(
+    x = age,
+    y = average_spending,
+    color = education_level,
+    group = education_level
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Mean Coffee Spending by Age and Education",
+    x = "Age Group",
+    y = "Mean Coffee Spending per Person ($)",
+    color = "Education Level"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    ),
+    legend.position = "right"
+  )
+
+
+
+# Calculate average spending by age and education level
+age_education_average <- coffee_processed %>%
+  group_by(age, education_level) %>%
+  summarise(
+    average_spending = mean(total_spend_numeric, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    highlighted = ifelse(
+      education_level == "Doctorate or professional degree",
+      "Doctorate or professional degree",
+      "Other Education Levels"
+    )
+  )
+
+# Plot average spending, highlighting doctorate/professional degree
+ggplot(
+  age_education_average,
+  aes(
+    x = age,
+    y = average_spending,
+    group = education_level,
+    color = highlighted
+  )
+) +
+  geom_line(aes(linewidth = highlighted), alpha = 0.9) +
+  geom_point(aes(size = highlighted)) +
+  scale_color_manual(
+    values = c(
+      "Doctorate or professional degree" = "purple",
+      "Other Education Levels" = "gray70"
+    )
+  ) +
+  scale_linewidth_manual(
+    values = c(
+      "Doctorate or professional degree" = 1.4,
+      "Other Education Levels" = 0.7
+    ),
+    guide = "none"
+  ) +
+  scale_size_manual(
+    values = c(
+      "Doctorate or professional degree" = 3,
+      "Other Education Levels" = 1.8
+    ),
+    guide = "none"
+  ) +
+  labs(
+    title = "Mean Coffee Spending by Age and Education",
+    subtitle = "Doctorate or professional degree highlighted",
+    x = "Age Group",
+    y = "Mean Coffee Spending per Person ($)",
+    color = "Education Level"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  )
+```
+
+
+### Discussion
+
+Plot 1 shows that men spend more on coffee per month on average than women across every age group, with the youngest men spending nearly twice as much as their female counterparts. One possible explanation is that younger men may have different lifestyles or daily routines, such as staying up late playing video games, which could contribute to greater coffee consumption. The plot also shows a steady increase in average monthly coffee expenditure among non-binary respondents up to age 44, where their average spending surpasses that of men. However, non-binary respondents are not represented in the older age groups, so it is not possible to determine whether this trend continues as they get older.
+
+More generally, the plot suggests that average monthly coffee expenditure increases with age for both men and women up to approximately age 44, after which spending decreases. This pattern could reflect changes in lifestyle, employment, disposable income, or coffee consumption habits as people get older. Health considerations may also influence coffee consumption among older adults. However, these are potential explanations rather than conclusions supported directly by the plot. Furthermore, because the visualization shows average monthly expenditure, higher spending could result from purchasing coffee more frequently rather than paying more per cup. Overall, the plot suggests an association between age, gender, and monthly coffee expenditure, although further analysis would be needed to understand the factors driving these differences.
+
+Plots 2 and 3 show that respondents with a doctorate or professional degree generally have the highest mean monthly coffee expenditure across most age groups, particularly among those aged 45 and older. Their average spending remains relatively high and stable from ages 35–44 onward, peaking at approximately \$53 per month before gradually declining among older respondents. One possible explanation is that individuals with higher educational qualifications may have greater earning potential and more disposable income to spend on coffee. In contrast, respondents who are high school graduates show a noticeable decline in average expenditure after age 45–54, with spending falling to approximately \$21 among those aged 55–64. This could reflect differences in income, lifestyle, or coffee consumption habits across age groups.
+
+Another notable pattern appears among respondents with less than a high school education, whose mean expenditure rises sharply from approximately \$10 among those aged 18–24 to \$60 among those aged 35–44. However, this group has no visible data for the older age categories, making it difficult to determine whether the trend continues. The remaining education groups generally show increasing expenditure into middle age, followed by declines in some of the older age groups. These patterns may reflect changes in disposable income, employment, lifestyle, or coffee consumption as people get older, mirroring what we saw in plot 1. However, because the plot presents average monthly expenditure, higher spending may result from purchasing coffee more frequently rather than paying more per cup. Additionally, the differences between education groups may be influenced by the number of respondents in each age category. Overall, the plot suggests that monthly coffee expenditure varies with both age and educational attainment
+
+
 ## References
 
 McKeon Aloe, R. (2023, November 28). *Great American Coffee Taste Test breakdown*. Medium. <https://rmckeon.medium.com/great-american-coffee-taste-test-breakdown-7f3fdcc3c41d>
