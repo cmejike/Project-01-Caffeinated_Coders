@@ -211,7 +211,7 @@ ggplot(
   geom_point(aes(size = highlighted)) +
   scale_color_manual(
     values = c(
-      "Doctorate or professional degree" = "blue",
+      "Doctorate or professional degree" = "purple",
       "Other Education Levels" = "gray70"
     )
   ) +
