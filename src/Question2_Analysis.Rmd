@@ -165,7 +165,7 @@ ggplot(
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   labs(
-    title = "Average Coffee Spending by Age and Education",
+    title = "Mean Coffee Spending by Age and Education",
     x = "Age Group",
     y = "Mean Coffee Spending per Person ($)",
     color = "Education Level"
@@ -230,7 +230,7 @@ ggplot(
     guide = "none"
   ) +
   labs(
-    title = "Average Coffee Spending by Age and Education",
+    title = "Mean Coffee Spending by Age and Education",
     subtitle = "Doctorate or professional degree highlighted",
     x = "Age Group",
     y = "Mean Coffee Spending per Person ($)",
