@@ -277,7 +277,7 @@ plot1 <- ggplot(plot1_data,
         panel.spacing.y      = unit(1, "lines"),
         axis.text.y          = element_text(lineheight = 0.9))
 
-ggsave("../final_plots/q1_final_plot1_monthly_spend.png", plot1,
+ggsave("final_plots/q1_final_plot1_monthly_spend.png", plot1,
        width = 12, height = 9, dpi = 300)
 
 
@@ -332,6 +332,6 @@ plot2 <- ggplot(plot2_data,
         axis.title.y       = element_text(colour = "grey35",
                                           margin = margin(r = 10)))
 
-ggsave("../final_plots/q1_final_plot2_willing_to_pay.png", plot2,
+ggsave("final_plots/q1_final_plot2_willing_to_pay.png", plot2,
        width = 13, height = 6.5, dpi = 300)
 
