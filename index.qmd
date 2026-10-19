@@ -261,7 +261,7 @@ Some of the heavy-drinker pattern is simple arithmetic. People who drink more cu
 There are limits to how far these results reach. The groups overlap: about half of the heavy drinkers in our sample also rate themselves as experts, so each panel shows one characteristic on its own, and part of the consumption pattern may really be an expertise pattern. Spending is self-reported in ranges, expertise is self-rated, and the people who took part were fans of a specialty-coffee YouTuber, so the results describe engaged coffee drinkers rather than the average customer. Still, the main takeaway for a coffee shop is clear. Heavy drinkers stand out for everyday spending, while enthusiasts are the customers most open to premium prices.
 
 
-## Question 2: Is monthly coffee expenditure associated with age, gender, and employment status?
+## Question 2: Is monthly coffee expenditure associated with age, gender, and education level?
 
 ### Introduction
 
