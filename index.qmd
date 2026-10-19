@@ -265,28 +265,25 @@ There are limits to how far these results reach. The groups overlap: about half 
 
 ### Introduction
 
-Coffee is a popular beverage, and consumers differ in how much they spend on it each month. Understanding these differences can help coffee shops and roasters better understand their customers and make informed decisions about pricing and marketing. This analysis investigates whether monthly coffee expenditure is associated with age, gender, and employment status. We are interested in this question because identifying differences in spending habits between demographic groups could help businesses understand which customer groups contribute differently to coffee sales. To answer this question, we will use the survey dataset's total_spend variable, which represents respondents' reported monthly coffee expenditure, alongside the age, gender, and employment_status variables. These demographic variables allow us to compare spending patterns across different groups. Monthly expenditure reflects both consumers' willingness to spend and their coffee consumption habits, including how frequently they purchase coffee. Therefore, rather than measuring willingness to pay for a single cup, this analysis focuses on overall monthly coffee spending and how it varies across demographic groups.
+Coffee consumers differ in how much they spend each month, and these differences may be associated with demographic characteristics. Understanding these patterns can help coffee shops and roasters better understand their customers and make informed pricing and marketing decisions. This analysis examines the relationship between monthly coffee expenditure and three demographic characteristics: age, gender, and employment status. Using the survey dataset's total_spend variable alongside these demographic variables, we compare spending patterns across different groups to identify potential differences in customer spending habits. Because monthly expenditure is recorded in categories rather than exact dollar amounts, approximate spending values are used to estimate group averages. These estimates should therefore be interpreted as comparisons of approximate monthly spending rather than exact expenditure. Additionally, monthly spending reflects both consumers' willingness to spend and their coffee consumption habits, including how frequently they purchase coffee. As a result, this analysis focuses on overall monthly coffee expenditure rather than willingness to pay for a single cup.
 
 ### Approach 
 
-To investigate whether monthly coffee expenditure is associated with age, gender, and employment status, we will create two different visualizations. The first plot will be a grouped bar chart showing the average monthly coffee expenditure across age groups, with bars distinguished by gender using different colors. A bar chart is appropriate because it allows us to compare expenditure across discrete demographic categories and identify potential differences between age groups and genders. Using color mapping for gender will make it easier to compare spending patterns between men and women within each age group.
+We created three visualizations to investigate differences in average monthly coffee expenditure across demographic groups. The first is a grouped bar chart comparing average expenditure across age categories and gender. A bar chart is appropriate because it allows us to compare spending across discrete demographic groups, with different colors distinguishing gender and making differences between men and women within each age group easier to identify. The second visualization is a line chart showing average monthly expenditure across age groups for different education levels. Since age categories are ordered, connecting group averages helps reveal trends in spending and facilitates comparisons across educational backgrounds. The third plot presents the same education-level comparisons but highlights respondents with a doctorate or professional degree in purple while displaying the remaining education levels in gray. This visual emphasis makes it easier to identify differences in spending patterns and examine whether respondents with a doctorate or professional degree tend to have higher average expenditure than other education groups.
 
-Plots 2 and 3 use line graphs to compare average monthly coffee expenditure across age groups, with separate lines representing different education levels. Line graphs are useful for identifying trends across ordered age categories and comparing spending patterns between groups. Plot 2 uses different colors to distinguish all education levels, allowing us to observe how expenditure varies across educational backgrounds as age increases. Plot 3 presents the same data but highlights respondents with a doctorate or professional degree in purple while displaying the remaining education levels in gray. This emphasis makes it easier to identify how respondents with a doctorate or professional degree generally have the highest mean monthly coffee expenditure across most age groups, allowing their spending patterns to stand out more clearly from those of other education levels.
+To calculate average monthly expenditure, the original spending categories were converted into approximate dollar amounts using representative values of \$10, \$30, \$50, \$70, \$90, and \$110, respectively. We then calculated the mean of these values for each age and demographic group. This approach provides a straightforward basis for comparing average expenditure across groups. However, the results are approximate because the original data contain spending ranges rather than exact dollar amounts. In particular, the lowest and highest spending categories are open-ended, meaning their representative values may not reflect respondents' actual expenditure. Therefore, the visualizations illustrate estimated differences in average monthly coffee spending rather than precise expenditure amounts.
 
 
 ### Analysis
 
 #### Plot 1
 
-```{r}
-
-#Data retrival and cleaning:
+```{r Preprocessing}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(scales)
 coffee <- read_csv('data/coffee_survey.csv', show_col_types = FALSE)
-coffee$cups = as.factor(coffee$cups)
-coffee$strength = as.factor(coffee$strength)
-cols = c('age','total_spend','gender', 'education_level')
-coffee_no_na <- na.omit(coffee[cols])
-
 age_levels <- c(
   "<18 years old",
   "18-24 years old",
@@ -297,48 +294,78 @@ age_levels <- c(
   ">65 years old"
 )
 
-# Prepare data: keep only the three gender categories
-coffee_processed <- coffee_no_na %>%
-  filter(gender %in% c("Male", "Female", "Non-binary")) %>%
-  mutate(
-    total_spend_numeric = case_when(
-      total_spend == "<$20" ~ 10,
-      total_spend == "$20-$40" ~ 30,
-      total_spend == "$40-$60" ~ 50,
-      total_spend == "$60-$80" ~ 70,
-      total_spend == "$80-$100" ~ 90,
-      total_spend == ">$100" ~ 110,
-      TRUE ~ NA_real_
-    ),
+#Others genders will be excluded, since they are a minority of the data and add visual clutter with no meaningful information able to be extracted from them
+gender_levels <- c("Male", "Female", "Non-binary")
+
+# Convert spending ranges to approximate dollar values
+spending_values <- function(x) {
+  case_when(
+    x == "<$20"       ~ 10,
+    x == "$20-$40"    ~ 30,
+    x == "$40-$60"    ~ 50,
+    x == "$60-$80"    ~ 70,
+    x == "$80-$100"   ~ 90,
+    x == ">$100"      ~ 110,
+    TRUE              ~ NA_real_
+  )
+}
+
+# Prepare shared variables without requiring education data
+coffee_q2 <- coffee %>%
+  transmute(
     age = factor(age, levels = age_levels),
-    gender_group = factor(
-      gender,
-      levels = c("Male", "Female", "Non-binary")
-    )
+    gender = gender,
+    education_level = education_level,
+    total_spend_numeric = spending_values(total_spend)
   ) %>%
   filter(
     !is.na(age),
     !is.na(total_spend_numeric)
   )
 
-# Calculate mean spending by age and gender
-age_gender_mean <- coffee_processed %>%
-  group_by(age, gender_group) %>%
-  summarise(
-    mean_spend = mean(total_spend_numeric, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
+# Dataset for Plot 1: age and gender
+# Missing education values do not exclude respondents here
+coffee_gender <- coffee_q2 %>%
+  filter(gender %in% gender_levels) %>%
+  mutate(
+    gender_group = factor(gender, levels = gender_levels)
   )
 
-# Define colors
+# Dataset for Plots 2 and 3: age and education
+# Only these plots require a non-missing education level
+coffee_education <- coffee_q2 %>%
+  filter(!is.na(education_level))
+```
+
+```{r Plot1}
+age_gender_mean <- coffee_gender %>%
+  group_by(age, gender_group, .drop = FALSE) %>%
+  summarise(
+    mean_spend = if (all(is.na(total_spend_numeric))) {
+      NA_real_
+    } else {
+      mean(total_spend_numeric, na.rm = TRUE)
+    },
+    n = sum(!is.na(total_spend_numeric)),
+    .groups = "drop"
+  ) %>%
+  filter(n > 0) %>%
+  mutate(
+    bar_label = paste0(
+      "$", round(mean_spend),
+      "\n(n=", n, ")"
+    )
+  )
+
 gender_colors <- c(
   "Male" = "lightblue",
   "Female" = "pink",
   "Non-binary" = "purple"
 )
 
-# Plot
-ggplot(
+dodge <- position_dodge(width = 0.85)
+
+plot1 <- ggplot(
   age_gender_mean,
   aes(
     x = age,
@@ -377,19 +404,28 @@ ggplot(
     legend.position = "bottom",
     plot.title = element_text(face = "bold")
   )
-```
-#### Plot 2 & 3
-```{r}
-# Calculate average spending by age and education level
-age_education_average <- coffee_processed %>%
-  group_by(age, education_level) %>%
-  summarise(
-    average_spending = mean(total_spend_numeric, na.rm = TRUE),
-    .groups = "drop"
-  )
+ggsave("final_plots/q2_coffee_spending_by_age_and_gender.png", plot1,
+       width = 13, height = 6.5, dpi = 300)
 
-# Plot average spending
-ggplot(
+plot1
+```
+
+#### Plot 2 & 3
+```{r Plot2}
+age_education_average <- coffee_education %>%
+  group_by(age, education_level, .drop = FALSE) %>%
+  summarise(
+    average_spending = if (all(is.na(total_spend_numeric))) {
+      NA_real_
+    } else {
+      mean(total_spend_numeric, na.rm = TRUE)
+    },
+    n = sum(!is.na(total_spend_numeric)),
+    .groups = "drop"
+  ) %>%
+  filter(n > 0)
+
+plot2 <- ggplot(
   age_education_average,
   aes(
     x = age,
@@ -398,43 +434,44 @@ ggplot(
     group = education_level
   )
 ) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
+  geom_line(linewidth = 1, na.rm = TRUE) +
+  geom_point(size = 2, na.rm = TRUE) +
+  scale_x_discrete(drop = FALSE) +
   labs(
     title = "Mean Coffee Spending by Age and Education",
+    subtitle = "Labels and points represent observed age-education groups",
     x = "Age Group",
-    y = "Mean Coffee Spending per Person ($)",
+    y = "Mean Monthly Spending per Respondent ($)",
     color = "Education Level"
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(
-      angle = 45,
-      hjust = 1
-    ),
-    legend.position = "right"
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    plot.title = element_text(face = "bold")
   )
+ggsave("final_plots/q2_coffee_spending_by_age_and_education.png", plot2,
+       width = 13, height = 6.5, dpi = 300)
+plot2
 
+highlight_label <- "Doctorate or professional degree"
 
-
-# Calculate average spending by age and education level
-age_education_average <- coffee_processed %>%
-  group_by(age, education_level) %>%
-  summarise(
-    average_spending = mean(total_spend_numeric, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
+age_education_highlight <- age_education_average %>%
   mutate(
-    highlighted = ifelse(
-      education_level == "Doctorate or professional degree",
-      "Doctorate or professional degree",
+    highlighted = if_else(
+      education_level == highlight_label,
+      highlight_label,
       "Other Education Levels"
     )
   )
 
-# Plot average spending, highlighting doctorate/professional degree
-ggplot(
-  age_education_average,
+highlight_colors <- c(
+  "Doctorate or professional degree" = "purple",
+  "Other Education Levels" = "gray70"
+)
+
+plot3 <- ggplot(
+  age_education_highlight,
   aes(
     x = age,
     y = average_spending,
@@ -442,14 +479,16 @@ ggplot(
     color = highlighted
   )
 ) +
-  geom_line(aes(linewidth = highlighted), alpha = 0.9) +
-  geom_point(aes(size = highlighted)) +
-  scale_color_manual(
-    values = c(
-      "Doctorate or professional degree" = "purple",
-      "Other Education Levels" = "gray70"
-    )
+  geom_line(
+    aes(linewidth = highlighted),
+    alpha = 0.9,
+    na.rm = TRUE
   ) +
+  geom_point(
+    aes(size = highlighted),
+    na.rm = TRUE
+  ) +
+  scale_color_manual(values = highlight_colors) +
   scale_linewidth_manual(
     values = c(
       "Doctorate or professional degree" = 1.4,
@@ -464,18 +503,24 @@ ggplot(
     ),
     guide = "none"
   ) +
+  scale_x_discrete(drop = FALSE) +
   labs(
     title = "Mean Coffee Spending by Age and Education",
     subtitle = "Doctorate or professional degree highlighted",
     x = "Age Group",
-    y = "Mean Coffee Spending per Person ($)",
+    y = "Mean Monthly Spending per Respondent ($)",
     color = "Education Level"
   ) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "right"
+    legend.position = "right",
+    plot.title = element_text(face = "bold")
   )
+ggsave("final_plots/q2_coffee_spending_by_age_and_education_highlighted.png", plot3,
+       width = 13, height = 6.5, dpi = 300)
+
+plot3
 ```
 
 

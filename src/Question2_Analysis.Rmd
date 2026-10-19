@@ -7,47 +7,21 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 #uncomment if the libraries has not been installed before
-#install.packages(c("tidyverse", "ggplot2", "dplyr"))
+#install.packages(c("tidyverse", "ggplot2", "dplyr","scales"))
 
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
-library(ggplot2)
+library(scales)
 ```
 
 # Data collection
 
 ```{r data_input}
 coffee <- read_csv('../data/coffee_survey.csv', show_col_types = FALSE)
-coffee$cups = as.factor(coffee$cups)
-coffee$strength = as.factor(coffee$strength)
 ```
 
-
-# Data Preprocessing
-
-```{r column_choice_for_visualization}
-cols = c('age','total_spend','gender', 'education_level')
-```
-
-We want to remove NA values so that we just look at the data that is complete.To justify this we need to see what percentage of our data will be left over if we decide to do this.
-
-```{r na_value_inspection}
-paste("Missing data %:",round((nrow(coffee[cols])-nrow(na.omit(coffee[cols])))/nrow(coffee[cols])*100,2))
-paste("Leftover samples: ",nrow(na.omit(coffee[cols])))
-```
-
-We are removing 16.3% of the data, but we will still have 3383 of the 4042 samples. This is acceptable.
-
-```{r create_clean_dataframe}
-coffee_no_na <- na.omit(coffee[cols])
-```
-
-
-```{r}
-head(coffee_no_na)
-
-```
+# Data Preperation
 
 ```{r}
 age_levels <- c(
@@ -60,48 +34,88 @@ age_levels <- c(
   ">65 years old"
 )
 
-# Prepare data: keep only the three gender categories
-coffee_processed <- coffee_no_na %>%
-  filter(gender %in% c("Male", "Female", "Non-binary")) %>%
-  mutate(
-    total_spend_numeric = case_when(
-      total_spend == "<$20" ~ 10,
-      total_spend == "$20-$40" ~ 30,
-      total_spend == "$40-$60" ~ 50,
-      total_spend == "$60-$80" ~ 70,
-      total_spend == "$80-$100" ~ 90,
-      total_spend == ">$100" ~ 110,
-      TRUE ~ NA_real_
-    ),
+#Others genders will be excluded, since they are a minority of the data and add visual clutter with no meaningful information able to be extracted from them
+gender_levels <- c("Male", "Female", "Non-binary")
+
+# Convert spending ranges to approximate dollar values
+spending_values <- function(x) {
+  case_when(
+    x == "<$20"       ~ 10,
+    x == "$20-$40"    ~ 30,
+    x == "$40-$60"    ~ 50,
+    x == "$60-$80"    ~ 70,
+    x == "$80-$100"   ~ 90,
+    x == ">$100"      ~ 110,
+    TRUE              ~ NA_real_
+  )
+}
+
+# Prepare shared variables without requiring education data
+coffee_q2 <- coffee %>%
+  transmute(
     age = factor(age, levels = age_levels),
-    gender_group = factor(
-      gender,
-      levels = c("Male", "Female", "Non-binary")
-    )
+    gender = gender,
+    education_level = education_level,
+    total_spend_numeric = spending_values(total_spend)
   ) %>%
   filter(
     !is.na(age),
     !is.na(total_spend_numeric)
   )
 
-# Calculate mean spending by age and gender
-age_gender_mean <- coffee_processed %>%
-  group_by(age, gender_group) %>%
-  summarise(
-    mean_spend = mean(total_spend_numeric, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
+# Dataset for Plot 1: age and gender
+# Missing education values do not exclude respondents here
+coffee_gender <- coffee_q2 %>%
+  filter(gender %in% gender_levels) %>%
+  mutate(
+    gender_group = factor(gender, levels = gender_levels)
   )
 
-# Define colors
+# Dataset for Plots 2 and 3: age and education
+# Only these plots require a non-missing education level
+coffee_education <- coffee_q2 %>%
+  filter(!is.na(education_level))
+
+# Useful sample sizes for the report
+n_gender <- nrow(coffee_gender)
+n_education <- nrow(coffee_education)
+
+cat("Respondents used for gender analysis:", n_gender, "\n")
+cat("Respondents used for education analysis:", n_education, "\n")
+```
+
+
+```{r}
+# Plot 1: Mean spending by age and gender ------------------------------------
+
+age_gender_mean <- coffee_gender %>%
+  group_by(age, gender_group, .drop = FALSE) %>%
+  summarise(
+    mean_spend = if (all(is.na(total_spend_numeric))) {
+      NA_real_
+    } else {
+      mean(total_spend_numeric, na.rm = TRUE)
+    },
+    n = sum(!is.na(total_spend_numeric)),
+    .groups = "drop"
+  ) %>%
+  filter(n > 0) %>%
+  mutate(
+    bar_label = paste0(
+      "$", round(mean_spend),
+      "\n(n=", n, ")"
+    )
+  )
+
 gender_colors <- c(
   "Male" = "lightblue",
   "Female" = "pink",
   "Non-binary" = "purple"
 )
 
-# Plot
-ggplot(
+dodge <- position_dodge(width = 0.85)
+
+plot1 <- ggplot(
   age_gender_mean,
   aes(
     x = age,
@@ -140,20 +154,30 @@ ggplot(
     legend.position = "bottom",
     plot.title = element_text(face = "bold")
   )
+ggsave("../final_plots/q2_coffee_spending_by_age_and_gender.png", plot1,
+       width = 13, height = 6.5, dpi = 300)
+
+plot1
 ```
 
 
 ```{r}
-# Calculate average spending by age and education level
-age_education_average <- coffee_processed %>%
-  group_by(age, education_level) %>%
-  summarise(
-    average_spending = mean(total_spend_numeric, na.rm = TRUE),
-    .groups = "drop"
-  )
+# Plot 2: Mean spending by age and education
 
-# Plot average spending
-ggplot(
+age_education_average <- coffee_education %>%
+  group_by(age, education_level, .drop = FALSE) %>%
+  summarise(
+    average_spending = if (all(is.na(total_spend_numeric))) {
+      NA_real_
+    } else {
+      mean(total_spend_numeric, na.rm = TRUE)
+    },
+    n = sum(!is.na(total_spend_numeric)),
+    .groups = "drop"
+  ) %>%
+  filter(n > 0)
+
+plot2 <- ggplot(
   age_education_average,
   aes(
     x = age,
@@ -162,44 +186,49 @@ ggplot(
     group = education_level
   )
 ) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
+  geom_line(linewidth = 1, na.rm = TRUE) +
+  geom_point(size = 2, na.rm = TRUE) +
+  scale_x_discrete(drop = FALSE) +
   labs(
     title = "Mean Coffee Spending by Age and Education",
+    subtitle = "Labels and points represent observed age-education groups",
     x = "Age Group",
-    y = "Mean Coffee Spending per Person ($)",
+    y = "Mean Monthly Spending per Respondent ($)",
     color = "Education Level"
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(
-      angle = 45,
-      hjust = 1
-    ),
-    legend.position = "right"
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    plot.title = element_text(face = "bold")
   )
+ggsave("../final_plots/q2_coffee_spending_by_age_and_education.png", plot2,
+       width = 13, height = 6.5, dpi = 300)
+plot2
 ```
 
 
 ```{r}
-# Calculate average spending by age and education level
-age_education_average <- coffee_processed %>%
-  group_by(age, education_level) %>%
-  summarise(
-    average_spending = mean(total_spend_numeric, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
+# Plot 3: Highlight doctorate or professional degree
+
+highlight_label <- "Doctorate or professional degree"
+
+age_education_highlight <- age_education_average %>%
   mutate(
-    highlighted = ifelse(
-      education_level == "Doctorate or professional degree",
-      "Doctorate or professional degree",
+    highlighted = if_else(
+      education_level == highlight_label,
+      highlight_label,
       "Other Education Levels"
     )
   )
 
-# Plot average spending, highlighting doctorate/professional degree
-ggplot(
-  age_education_average,
+highlight_colors <- c(
+  "Doctorate or professional degree" = "purple",
+  "Other Education Levels" = "gray70"
+)
+
+plot3 <- ggplot(
+  age_education_highlight,
   aes(
     x = age,
     y = average_spending,
@@ -207,14 +236,16 @@ ggplot(
     color = highlighted
   )
 ) +
-  geom_line(aes(linewidth = highlighted), alpha = 0.9) +
-  geom_point(aes(size = highlighted)) +
-  scale_color_manual(
-    values = c(
-      "Doctorate or professional degree" = "purple",
-      "Other Education Levels" = "gray70"
-    )
+  geom_line(
+    aes(linewidth = highlighted),
+    alpha = 0.9,
+    na.rm = TRUE
   ) +
+  geom_point(
+    aes(size = highlighted),
+    na.rm = TRUE
+  ) +
+  scale_color_manual(values = highlight_colors) +
   scale_linewidth_manual(
     values = c(
       "Doctorate or professional degree" = 1.4,
@@ -229,19 +260,29 @@ ggplot(
     ),
     guide = "none"
   ) +
+  scale_x_discrete(drop = FALSE) +
   labs(
     title = "Mean Coffee Spending by Age and Education",
     subtitle = "Doctorate or professional degree highlighted",
     x = "Age Group",
-    y = "Mean Coffee Spending per Person ($)",
+    y = "Mean Monthly Spending per Respondent ($)",
     color = "Education Level"
   ) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "right"
+    legend.position = "right",
+    plot.title = element_text(face = "bold")
   )
+ggsave("../final_plots/q2_coffee_spending_by_age_and_education_highlighted.png", plot3,
+       width = 13, height = 6.5, dpi = 300)
+
+plot3
 ```
+
+
+
+
 
 
 
