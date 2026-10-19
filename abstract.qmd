@@ -1,11 +1,11 @@
 ---
-title: "Project title"
+title: "Brewed Behaviour"
 subtitle: "INFO 526 - Project 1"
-author: "Team name"
+author: "Jonathan Le Roux, Tanu sree Edibilli, Chidera M Ejike"
 format: html
 editor: visual
 ---
 
 ## Abstract
 
-Add project abstract here.
+This project, *Brewed Behavior*, explores coffee consumption and spending patterns using data from the Great American Coffee Taste Test. Our goal is to help coffee shop owners and roasters better understand their customers and identify demographic and behavioral groups that may be valuable to target. We investigate whether coffee consumption habits, preferred coffee strength, and self-rated coffee expertise are associated with monthly coffee expenditure and willingness to pay for a single cup. We also examine whether willingness to pay varies by age, gender, and employment status. Using exploratory data analysis and visualizations, we aim to identify patterns that could inform business decisions about pricing, premium coffee offerings, subscriptions, and customer targeting. Because the survey is voluntary and self-selected, our findings are descriptive and exploratory rather than representative of the broader U.S. population.
